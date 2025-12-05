@@ -1,6 +1,0 @@
-# dune init proj sw
-# OCAMLPARAM: unset
-# Shared cache: enabled-except-user-rules
-# Shared cache location: /home/blobcode/.cache/dune/db
-# Workspace root: /home/blobcode/projects/sw
-# Auto-detected concurrency: 12
