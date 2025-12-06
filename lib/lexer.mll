@@ -3,6 +3,7 @@ open Parser
 }
 
 let white = [' ' '\t']+
+let newline = '\n'
 let digit = ['0'-'9']
 let int = '-'? digit+
 let letter = ['a'-'z' 'A'-'Z']
@@ -11,6 +12,7 @@ let id = letter+
 rule read =
   parse
   | white { read lexbuf }
+  | newline { read lexbuf }
   | "true" { TRUE }
   | "false" { FALSE }
   | "<=" { LEQ }
@@ -37,3 +39,5 @@ rule read =
   | id { ID (Lexing.lexeme lexbuf) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | eof { EOF }
+  | _ { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
+  

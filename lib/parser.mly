@@ -35,6 +35,7 @@ open Ast
 %left LEQ
 %left PLUS
 %left TIMES
+%nonassoc LENGTH
 %nonassoc TO
 
 %start <Ast.expr> prog
@@ -71,6 +72,6 @@ simple_expr:
   | TRUE { Bool true }
   | FALSE { Bool false }
   | LBRACKET; es = separated_list(COMMA, expr); RBRACKET { List es }
-  | LENGTH; LPAREN; e = expr; RPAREN { Length e }
+  | LENGTH; e = expr { Length e }
   | LPAREN; e = expr; RPAREN { e }
   ;
