@@ -3,6 +3,7 @@ type iop =
   | Add
   | Mult
   | Leq
+  | Map
 
 type expr =
   | Var of string
@@ -14,19 +15,22 @@ type expr =
   | List of expr list
   | Index of expr * expr
   | Length of expr
+  | Lambda of string * expr
 
 type value =
   | VInt of int
   | VBool of bool
   | VList of value list
+  | VClosure of string * expr * ((string * value) list)
+
+and env = (string * value) list
 
 let rec string_of_val v =
   match v with
   | VInt i -> string_of_int i
   | VBool b -> string_of_bool b
   | VList l -> "["^ String.concat ", " (List.map string_of_val l) ^"]"
-
-type env = (string * value) list
+  | VClosure _ -> "<function>"
 
 let rec range start stop =
   if start > stop then []
@@ -44,6 +48,11 @@ let rec eval (env : env) (e : expr) : value =
       let v1 = eval env e1 in
       let v2 = eval env e2 in
       (match op, v1, v2 with
+      | Map, VList lst, VClosure (param, body, closure_env) ->
+          VList (List.map (fun item ->
+            let new_env = (param, item) :: closure_env in
+            eval new_env body
+          ) lst)
       | Range, VInt i1, VInt i2 -> VList (List.map (fun x -> VInt x) (range i1 i2))
       | Add, VInt i1, VInt i2 -> VInt (i1 + i2)
       | Mult, VInt i1, VInt i2 -> VInt (i1 * i2)
@@ -76,3 +85,5 @@ let rec eval (env : env) (e : expr) : value =
       (match eval env e_list with
       | VList l -> VInt (List.length l)
       | _ -> failwith "len requires list" )
+  | Lambda (param, body) ->
+      VClosure (param, body, env)

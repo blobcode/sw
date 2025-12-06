@@ -20,7 +20,6 @@ rule read =
   | ")" { RPAREN }
   | "[" { LBRACKET }
   | "]" { RBRACKET } 
-  | "=" { EQUALS }
   | ":=" { ASSIGN }
   | ";" { SEMICOLON }
   | "," { COMMA }
@@ -29,6 +28,11 @@ rule read =
   | "else" { ELSE }
   | ".." { TO }
   | "len" { LENGTH }
+  | "map" { MAP }
+  | "\\" { BSLASH }
+  | "->" { ARROW }
+  | "?" { QUESTION }
+  | ":" { COLON }
   | id { ID (Lexing.lexeme lexbuf) }
   | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
   | eof { EOF }
