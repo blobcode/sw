@@ -29,6 +29,7 @@ rule read =
   | ".." { TO }
   | "len" { LENGTH }
   | "map" { MAP }
+  | "@" { MAP }
   | "\\" { BSLASH }
   | "->" { ARROW }
   | "?" { QUESTION }
