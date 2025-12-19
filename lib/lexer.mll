@@ -5,7 +5,7 @@ open Parser
 let white = [' ' '\t']+
 let newline = '\n'
 let digit = ['0'-'9']
-let int = '-'? digit+
+let int = digit+
 let letter = ['a'-'z' 'A'-'Z']
 let id = letter+
 
@@ -13,11 +13,13 @@ rule read =
   parse
   | white { read lexbuf }
   | newline { read lexbuf }
+  | '"' ([^ '"']* as s) '"' { STR s }
   | "true" { TRUE }
   | "false" { FALSE }
   | "<=" { LEQ }
   | "*" { TIMES }
   | "+" { PLUS }
+  | "-" { MINUS }
   | "(" { LPAREN }
   | ")" { RPAREN }
   | "[" { LBRACKET }
@@ -28,6 +30,7 @@ rule read =
   | "if" { IF }
   | "then" { THEN }
   | "else" { ELSE }
+  | "." { PERIOD }
   | ".." { TO }
   | "len" { LENGTH }
   | "map" { MAP }

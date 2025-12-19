@@ -3,11 +3,13 @@ open Ast
 %}
 %token <int> INT
 %token <string> ID
+%token <string> STR
 %token TRUE
 %token FALSE
 %token LEQ
 %token TIMES
 %token PLUS
+%token MINUS
 %token LPAREN
 %token RPAREN
 %token LBRACKET
@@ -25,6 +27,7 @@ open Ast
 %token ARROW
 %token QUESTION
 %token COLON
+%token PERIOD
 %token EOF
 
 %nonassoc LOWPREC
@@ -32,8 +35,9 @@ open Ast
 %left SEMICOLON
 %left MAP
 %nonassoc QUESTION COLON
+%left PERIOD
 %left LEQ
-%left PLUS
+%left PLUS, MINUS
 %left TIMES
 %nonassoc LENGTH
 %nonassoc TO
@@ -52,6 +56,9 @@ expr:
   | e1 = expr; LEQ; e2 = expr { InOp (Leq, e1, e2) }
   | e1 = expr; TIMES; e2 = expr { InOp (Mult, e1, e2) }
   | e1 = expr; PLUS; e2 = expr { InOp (Add, e1, e2) }
+  | e1 = expr; MINUS; e2 = expr { InOp (Sub, e1, e2) }
+  | e1 = expr; PERIOD; e2 = expr { InOp (Concat, e1, e2) }
+  | MINUS; e = simple_expr { InOp (Sub, Int 0, e) }
   | e1 = expr; QUESTION; e2 = expr; COLON; e3 = expr { If (e1, e2, e3) }
   | x = ID; ASSIGN; e1 = expr; SEMICOLON; e2 = expr { Let (x, e1, e2) }
   | x = ID; ASSIGN; e = expr %prec LOWPREC { Let (x, e, Var x) }
@@ -67,6 +74,7 @@ app_expr:
   ;
 
 simple_expr:
+  | s = STR { Str s }
   | i = INT { Int i }
   | x = ID { Var x }
   | TRUE { Bool true }

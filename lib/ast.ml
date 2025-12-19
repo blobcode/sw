@@ -1,14 +1,17 @@
 type iop =
   | Range
   | Add
+  | Sub
   | Mult
   | Leq
   | Map
+  | Concat
 
 type expr =
   | Var of string
   | Int of int
   | Bool of bool
+  | Str of string
   | InOp of iop * expr * expr
   | Let of string * expr * expr
   | If of expr * expr * expr
@@ -21,6 +24,7 @@ type expr =
 type value =
   | VInt of int
   | VBool of bool
+  | VStr of string
   | VList of value list
   | VClosure of string list * expr * ((string * value) list)
 
@@ -30,6 +34,7 @@ let rec string_of_val v =
   match v with
   | VInt i -> string_of_int i
   | VBool b -> string_of_bool b
+  | VStr s -> "\""^s^"\""
   | VList l -> "["^ String.concat ", " (List.map string_of_val l) ^"]"
   | VClosure _ -> "<function>"
 
@@ -41,6 +46,7 @@ let rec eval (env : env) (e : expr) : value =
   match e with
   | Int i -> VInt i
   | Bool b -> VBool b
+  | Str s -> VStr s
   | Var x -> 
       (try List.assoc x env 
        with Not_found -> failwith ("Unbound variable: " ^ x))
@@ -58,8 +64,10 @@ let rec eval (env : env) (e : expr) : value =
           ) lst)
       | Range, VInt i1, VInt i2 -> VList (List.map (fun x -> VInt x) (range i1 i2))
       | Add, VInt i1, VInt i2 -> VInt (i1 + i2)
+      | Sub, VInt i1, VInt i2 -> VInt (i1 - i2)
       | Mult, VInt i1, VInt i2 -> VInt (i1 * i2)
       | Leq, VInt i1, VInt i2 -> VBool (i1 <= i2)
+      | Concat, VStr s1, VStr s2 -> VStr (s1^s2)
       | _ -> failwith "Type error: operand mismatch for operator")
 
   | If (cond, e_then, e_else) ->
@@ -69,10 +77,16 @@ let rec eval (env : env) (e : expr) : value =
       | _ -> failwith "Type error: If condition must be a boolean")
 
   | Let (x, e_def, e_body) ->
-      let v_def = eval env e_def in
-      let new_env = (x, v_def) :: env in
-      eval new_env e_body
-
+      (match e_def with
+      | Lambda (params, body) ->
+          let rec new_env = (x, v_def) :: env
+          and v_def = VClosure (params, body, new_env) in
+          eval new_env e_body
+      | _ ->
+          let v_def = eval env e_def in
+          let new_env = (x, v_def) :: env in
+          eval new_env e_body)
+    
   | List exprs ->
       VList (List.map (eval env) exprs)
 

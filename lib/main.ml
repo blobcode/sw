@@ -20,6 +20,18 @@ let rec extract_bindings env = function
 let run_with_env env input =
   let lexbuf = Lexing.from_string input in
   let expr = Parser.prog Lexer.read lexbuf in
-  let result = Ast.eval env expr in
-  let new_env = extract_bindings env expr in
-  (Ast.string_of_val result, new_env)
+  
+  match expr with
+  | Let (x, e_def, Var y) when x = y ->
+      (match e_def with
+       | Lambda (params, body) ->
+           let rec new_env = (x, v_def) :: env
+           and v_def = VClosure (params, body, new_env) in
+           (string_of_val v_def, new_env)
+       | _ ->
+           let v = eval env e_def in
+           let new_env = (x, v) :: env in
+           (string_of_val v, new_env))
+  | _ ->
+      let v = eval env expr in
+      (string_of_val v, env)
